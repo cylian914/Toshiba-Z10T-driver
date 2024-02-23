@@ -1,40 +1,41 @@
 #include <linux/module.h>
 #include <linux/init.h>
-#include <linux/usb.h>
+#include <linux/hid.h>
+#include <linux/input.h>
 #define VENDOR 0x0930
 #define PRODUCT 0x0807
-#define usb_register(driver) \
-	usb_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
-
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("cylian91");
-MODULE_DESCRIPTION("A simple driver for toshiba usb interface");
+MODULE_DESCRIPTION("A simple driver for toshiba Z10T-A");
 
-static struct usb_device_id tba_ids[] = {
-  {USB_DEVICE(VENDOR,PRODUCT) },
-  {0}
+static const struct hid_device_id tba_ids[] = {
+  {HID_USB_DEVICE(VENDOR,PRODUCT)},
+  {}
 };
-MODULE_DEVICE_TABLE (usb, tba_ids);
-void tba_disco(struct usb_interface *interface){
-  printk("disconnected");
-  return;
+MODULE_DEVICE_TABLE(hid,tba_ids);
+
+static int tba_probe(struct hid_device *device, const struct hid_device_id *device_id){
+  printk("probed");
+  return -1;
 }
-static struct usb_driver tba_driver = {
-  .name = "Toshiba T10-A driver",
-  .disconnect = tba_disco,
+static struct hid_driver tba_hid = {
+  .name = "Z10T-A driver",
+  .probe = tba_probe,
   .id_table = tba_ids
-  
 };
+
 
 
 
 static int __init startDriver(void){
   printk("hello Kernel\n");
-  usb_register(&tba_driver);
+  if (hid_register_driver(&tba_hid)){
+    printk("didn't work");
+  }
   return 0;
 }
 static void __exit stopDriver(void){
-  usb_deregister(&tba_driver);
+  hid_unregister_driver(&tba_hid);
   printk("bye kernel\n");
 }
 
