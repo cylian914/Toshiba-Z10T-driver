@@ -10,6 +10,6 @@ build:
 clean:
 	make -C $(KDIR) M=$(PWD) clean
 run:
-	insmod toshibaUsbInterface.ko
-	rmmod toshibaUsbInterface.ko
-	dmesg | tail
+	sudo insmod toshibaUsbInterface.ko
+	sudo rmmod toshibaUsbInterface.ko
+	sudo dmesg | tail
