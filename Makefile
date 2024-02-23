@@ -13,4 +13,4 @@ run:
 	sudo insmod toshibaUsbInterface.ko
 	sleep 5
 	sudo rmmod toshibaUsbInterface.ko
-	sudo dmesg | tail
+	sudo dmesg | less
