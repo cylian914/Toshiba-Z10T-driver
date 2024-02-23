@@ -3,6 +3,9 @@
 #include <linux/usb.h>
 #define VENDOR 0x0930
 #define PRODUCT 0x0807
+#define usb_register(driver) \
+	usb_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("cylian91");
 MODULE_DESCRIPTION("A simple driver for toshiba usb interface");
@@ -27,7 +30,7 @@ static struct usb_driver tba_driver = {
 
 static int __init startDriver(void){
   printk("hello Kernel\n");
-  usb_register_driver(&tba_driver);
+  usb_register(&tba_driver);
   return 0;
 }
 static void __exit stopDriver(void){
