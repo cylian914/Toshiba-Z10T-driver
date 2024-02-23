@@ -11,5 +11,6 @@ clean:
 	make -C $(KDIR) M=$(PWD) clean
 run:
 	sudo insmod toshibaUsbInterface.ko
+	sleep 5
 	sudo rmmod toshibaUsbInterface.ko
 	sudo dmesg | tail
