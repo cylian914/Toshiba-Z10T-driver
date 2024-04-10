@@ -8,6 +8,7 @@ all:
 build:
 	make -C $(KDIR) M=$(PWD) modules
 clean:
+	sudo rmmod toshibaUsbInterface.ko &
 	make -C $(KDIR) M=$(PWD) clean
 run:
 	sudo insmod toshibaUsbInterface.ko

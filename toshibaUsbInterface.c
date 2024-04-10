@@ -41,10 +41,10 @@ struct mouse {
 };
 
 static void tba_mouse_irq(struct urb *urb){
-	printk("irq\n");
 	struct mouse* mouse = urb->context;
 	struct tba_proto *data = mouse->data;
 	struct input_dev *dev = mouse->input;
+	printk("irq: %i\n",urb->status);
 	switch (urb->status) {
 		case 0:			/* success */
 			break;
@@ -56,10 +56,13 @@ static void tba_mouse_irq(struct urb *urb){
 		default:		/* error */
 			goto resubmit;
 	}
+	printk("data: %x,%x,%x,%x,%x\n",data->type,data->click,data->pos_x,data->pos_y,data->unknown);
 	input_report_key(dev, BTN_LEFT, data->click & 0x01);
 	input_report_key(dev, BTN_RIGHT, data->click & 0x02);
-	input_report_key(dev, REL_X, data->pos_x);
-	input_report_key(dev, REL_Y, data->pos_y);
+	input_report_rel(dev, REL_X, data->pos_x);
+	input_report_rel(dev, REL_Y, data->pos_y);
+
+	input_sync(dev);
 resubmit:
 	int status = usb_submit_urb(urb,GFP_KERNEL);
 }
@@ -125,7 +128,7 @@ static int tba_probe(struct usb_interface *intf, const struct usb_device_id *dev
 	indev->close = tba_input_close;
 	usb_fill_int_urb(mouse->irq,udev,pipe,mouse->data,sizeof(mouse->data),tba_mouse_irq,mouse,intf->cur_altsetting->endpoint[0].desc.bInterval);
 	mouse->irq->transfer_dma = mouse->data_dma;
-	mouse->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP | URB_ISO_ASAP;
+	mouse->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 	input_register_device(mouse->input);
 	usb_set_intfdata(intf, mouse);
 	input_set_drvdata(indev, mouse);
@@ -143,11 +146,10 @@ fail:
 
 static void tba_remove(struct usb_interface *intf){
 	struct mouse *mouse = usb_get_intfdata(intf);
-	if (mouse){
-		usb_kill_urb(mouse->irq);
-		usb_free_urb(mouse->irq);
-		//printk("removed: %s, %i\n", mouse->udev->product, intf->cur_altsetting->desc.bInterfaceProtocol);
+	if (mouse){	
+				//printk("removed: %s, %i\n", mouse->udev->product, intf->cur_altsetting->desc.bInterfaceProtocol);
 		input_unregister_device(mouse->input);
+		usb_free_urb(mouse->irq);
 		usb_free_coherent(interface_to_usbdev(intf), sizeof(mouse->data), mouse->data, mouse->data_dma);
 		kfree(mouse);
 	} 
